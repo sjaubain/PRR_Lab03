@@ -1,0 +1,13 @@
+{
+	"nb_sites":4,
+	"sites_addr":[
+		"localhost:3000",
+		"localhost:3001",
+		"localhost:3002",
+		"localhost:3003"
+	],
+	"apt-site": [2,5,3,8]
+}
+
+
+		
