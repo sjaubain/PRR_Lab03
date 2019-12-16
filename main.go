@@ -1,12 +1,14 @@
 package main
 
 import (
+	"PRR_Lab03/algoCR"
+	"PRR_Lab03/network"
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
-	"PRR_Lab03/network"
 )
 
 type Conf struct {
@@ -29,9 +31,6 @@ func main(){
 	LoadConfiguration(&conf)
 
 
-	next := siteId + 1
-	total := conf.NB_SITES
-
 	// parse command line args
 	if len(os.Args) == 1 {
 		log.Println("you have to provide a site id")
@@ -43,13 +42,29 @@ func main(){
 			return
 		}
 	}
-	fmt.Println(siteId)
-	fmt.Println(next)
-	fmt.Println(total)
-	fmt.Println(conf.SITES_ADDR[siteId])
+	go algoCR.MsgFrom("udp", conf.SITES_ADDR[siteId])
 
-	go network.MsgFrom("udp", conf.SITES_ADDR[siteId])
-	network.ConnTo(next,conf.SITES_ADDR[next%total],conf.SITES_ADDR[siteId])
+
+	algoCR.InitAlgo(siteId,conf.APT_SITES[siteId])
+	network.InitNetwork(conf.NB_SITES,conf.SITES_ADDR,conf.APT_SITES,siteId)
+
+
+
+
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Println("\nEnter text: [E (Election)]\n")
+
+		// read the input of the user
+		cmd, _ := reader.ReadString('\n')
+
+		// if W, the site do an ask
+		if cmd == "E\n" {
+			algoCR.Election()
+		} else {
+			fmt.Println("unknown command " + cmd)
+		}
+	}
 
 	<- fin
 
