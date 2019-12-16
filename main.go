@@ -22,6 +22,7 @@ func LoadConfiguration(conf *Conf) {
 	_ = decoder.Decode(&conf)
 }
 
+var fin chan bool
 func main(){
 	var siteId int
 	var conf Conf
@@ -45,7 +46,11 @@ func main(){
 	fmt.Println(siteId)
 	fmt.Println(next)
 	fmt.Println(total)
+	fmt.Println(conf.SITES_ADDR[siteId])
 
+	go network.MsgFrom("udp", conf.SITES_ADDR[siteId])
 	network.ConnTo(next,conf.SITES_ADDR[next%total],conf.SITES_ADDR[siteId])
+
+	<- fin
 
 }
