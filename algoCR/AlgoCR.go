@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var(
@@ -24,7 +23,6 @@ func InitAlgo(identifiant int, apti int){
 
 
 func Election(){
-	time.Sleep(time.Second)
 	network.MsgTo("A" + idApt)
 	etat = "A"
 }
@@ -50,7 +48,6 @@ func RcptAnnonce(list string){
 		msg = "A" + list
 		etat = "A"
 	}
-	time.Sleep(time.Second)
 	network.MsgTo(msg)
 
 }
@@ -69,9 +66,7 @@ func RcptResultat(i string, list string){
 		}else if etat == "A"{
 			elu , _ = strconv.Atoi(i)
 			list += ";" + strconv.Itoa(site_id)
-
 			fmt.Println("Rcpt Resultat -> Elu: "+ i + " et la liste: " + list)
-			time.Sleep(time.Second)
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
 		}

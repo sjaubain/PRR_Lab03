@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 var(
@@ -32,6 +33,7 @@ func MsgTo(msg string){
 	}
 	defer conn.Close()
 
+	time.Sleep(time.Second)
 	fmt.Fprintf(conn,msg)
 }
 
