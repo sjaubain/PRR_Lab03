@@ -7,35 +7,34 @@ import (
 	"strings"
 )
 
-var(
+var (
 	site_id int
-	apt int
-	idApt string
-	etat string
-	elu int
+	apt     int
+	idApt   string
+	etat    string
+	elu     int
 )
 
-func InitAlgo(identifiant int, apti int){
+func InitAlgo(identifiant int, apti int) {
 	site_id = identifiant
 	apt = apti
 	idApt = strconv.Itoa(site_id) + "-" + strconv.Itoa(apt)
 }
 
-
-func Election(){
+func Election() {
 	network.MsgTo("A" + idApt)
 	etat = "A"
 }
 
-func RcptAnnonce(list string){
+func RcptAnnonce(list string) {
 	var msg string
-	if strings.Contains(list,idApt){
-		tabList := strings.Split(list,";")
+	if strings.Contains(list, idApt) {
+		tabList := strings.Split(list, ";")
 		aptMax := 0
 		elu = 0
-		for i := range tabList{
-			id,apt := getApt(tabList[i])
-			if apt > aptMax{
+		for i := range tabList {
+			id, apt := getApt(tabList[i])
+			if apt > aptMax {
 				aptMax = apt
 				elu = id
 			}
@@ -43,7 +42,7 @@ func RcptAnnonce(list string){
 		msg = "R" + strconv.Itoa(elu) + "," + strconv.Itoa(site_id)
 		etat = "R"
 		fmt.Println("Envoie Resultat avec elu !")
-	}else{
+	} else {
 		list += ";" + idApt
 		msg = "A" + list
 		etat = "A"
@@ -52,20 +51,18 @@ func RcptAnnonce(list string){
 
 }
 
-
-
-func RcptResultat(i string, list string){
-	tabProc := strings.Split(list,";")
-	for j:= range tabProc{
-		if strconv.Itoa(site_id) == tabProc[j]{
-			fmt.Println("Fin - Vous etes l elu !")
+func RcptResultat(i string, list string) {
+	tabProc := strings.Split(list, ";")
+	for j := range tabProc {
+		if strconv.Itoa(site_id) == tabProc[j] {
+			fmt.Println("Fin - Elu trouvé")
 			etat = "N"
-		}else if etat == "R" && strconv.Itoa(elu) != i{
+		} else if etat == "R" && strconv.Itoa(elu) != i {
 			fmt.Println("Lance une nouvelle election car contradiction")
 			Election()
-		}else if etat == "A"{
-			elu , _ = strconv.Atoi(i)
-			fmt.Println("Rcpt Resultat -> Elu: "+ i + " et la liste: " + list)
+		} else if etat == "A" {
+			elu, _ = strconv.Atoi(i)
+			fmt.Println("Rcpt Resultat -> Elu: " + i + " et la liste: " + list)
 			list += ";" + strconv.Itoa(site_id)
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
@@ -73,34 +70,31 @@ func RcptResultat(i string, list string){
 	}
 }
 
-func GetElu() int{
+func GetElu() int {
 	if etat == "N" {
 		return elu
 	}
 	return -1
 }
 
+func getApt(idApt string) (int, int) {
 
-func getApt(idApt string) (int,int){
-
-	splitIdApt :=  strings.Split(idApt,"-")
-	id,_ := strconv.Atoi(splitIdApt[0])
-	apt,_ := strconv.Atoi(splitIdApt[1])
+	splitIdApt := strings.Split(idApt, "-")
+	id, _ := strconv.Atoi(splitIdApt[0])
+	apt, _ := strconv.Atoi(splitIdApt[1])
 	return id, apt
 }
 
-func MsgHandle(net string, add string){
-	for{
-		msg := network.MsgFrom(net,add)
+func MsgHandle(net string, add string) {
+	for {
+		msg := network.MsgFrom(net, add)
 		oppCode := msg[0]
-		if oppCode == 'A'{
+		if oppCode == 'A' {
 			fmt.Println("Rcpt Annonce: " + msg[1:])
 			RcptAnnonce(msg[1:])
-		}else if oppCode == 'R'{
-			RcptResultat(string(msg[1]),msg[3:])
+		} else if oppCode == 'R' {
+			RcptResultat(string(msg[1]), msg[3:])
 		}
 	}
 
 }
-
-
