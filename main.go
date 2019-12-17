@@ -42,7 +42,7 @@ func main(){
 			return
 		}
 	}
-	go algoCR.MsgFrom("udp", conf.SITES_ADDR[siteId])
+	go algoCR.MsgHandle("udp", conf.SITES_ADDR[siteId])
 
 
 	algoCR.InitAlgo(siteId,conf.APT_SITES[siteId])

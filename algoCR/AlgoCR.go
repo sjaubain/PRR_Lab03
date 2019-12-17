@@ -2,11 +2,7 @@ package algoCR
 
 import (
 	"PRR_Lab03/network"
-	"bufio"
-	"bytes"
 	"fmt"
-	"log"
-	"net"
 	"strconv"
 	"strings"
 )
@@ -32,9 +28,8 @@ func Election(){
 }
 
 func RcptAnnonce(list string){
-
-	/// CONTAIN NE MARCHE PAS !!!!!!!!!!!!!
-	if strings.Contains(idApt,list){
+	var msg string
+	if strings.Contains(list,idApt){
 		tabList := strings.Split(list,";")
 		aptMax := 0
 		elu = 0
@@ -45,13 +40,16 @@ func RcptAnnonce(list string){
 				elu = id
 			}
 		}
-		network.MsgTo("R" + strconv.Itoa(elu) + "," + strconv.Itoa(site_id))
+		msg = "R" + strconv.Itoa(elu) + "," + strconv.Itoa(site_id)
 		etat = "R"
+		fmt.Println("Envoie Resultat avec moi comme elu !")
 	}else{
 		list += ";" + idApt
-		network.MsgTo("A"+list)
+		msg = "A" + list
 		etat = "A"
 	}
+	network.MsgTo(msg)
+
 }
 
 
@@ -60,12 +58,16 @@ func RcptResultat(i string, list string){
 	tabProc := strings.Split(list,";")
 	for j:= range tabProc{
 		if strconv.Itoa(site_id) == tabProc[j]{
+			fmt.Println("Fin - Vous etes l elu !")
 			etat = "N"
 		}else if etat == "R" && strconv.Itoa(elu) != i{
+			fmt.Println("Lance une nouvelle election car contradiction")
 			Election()
 		}else if etat == "A"{
 			elu , _ = strconv.Atoi(i)
 			list += ";" + strconv.Itoa(site_id)
+
+			fmt.Println("Rcpt Resultat -> Elu: "+ i + " et la liste: " + list)
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
 		}
@@ -88,33 +90,18 @@ func getApt(idApt string) (int,int){
 	return id, apt
 }
 
-func MsgFrom(network string, address string) {
-	conn, err := net.ListenPacket(network, address)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	buf := make([]byte, 1024)
-	for {
-		n,_, err := conn.ReadFrom(buf)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-		s := bufio.NewScanner(bytes.NewReader(buf[0:n]))
-		for s.Scan() {
-			msg := s.Text()
-
-			oppCode := msg[0]
-
-			if oppCode == 'A'{
-				RcptAnnonce(msg[1:])
-				fmt.Println("Rcpt Annonce: " + msg[1:])
-			}else if oppCode == 'R'{
-				RcptResultat(string(msg[1]),msg[3:])
-				fmt.Println("Rcpt Resultat -> Elu: "+ string(msg[1]) + " et la liste: " + msg[1:])
-
-			}
+func MsgHandle(net string, add string){
+	for{
+		msg := network.MsgFrom(net,add)
+		oppCode := msg[0]
+		if oppCode == 'A'{
+			RcptAnnonce(msg[1:])
+			fmt.Println("Rcpt Annonce: " + msg[1:])
+		}else if oppCode == 'R'{
+			RcptResultat(string(msg[1]),msg[3:])
 		}
 	}
+
 }
+
+

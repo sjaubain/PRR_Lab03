@@ -1,6 +1,8 @@
 package network
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"log"
 	"net"
@@ -33,3 +35,23 @@ func MsgTo(msg string){
 	fmt.Fprintf(conn,msg)
 }
 
+func MsgFrom(network string, address string) string{
+	conn, err := net.ListenPacket(network, address)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	buf := make([]byte, 1024)
+	for {
+		n,_, err := conn.ReadFrom(buf)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		s := bufio.NewScanner(bytes.NewReader(buf[0:n]))
+		for s.Scan() {
+			msg := s.Text()
+			return msg
+		}
+	}
+}
