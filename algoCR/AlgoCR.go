@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var(
@@ -23,6 +24,7 @@ func InitAlgo(identifiant int, apti int){
 
 
 func Election(){
+	time.Sleep(time.Second)
 	network.MsgTo("A" + idApt)
 	etat = "A"
 }
@@ -42,12 +44,13 @@ func RcptAnnonce(list string){
 		}
 		msg = "R" + strconv.Itoa(elu) + "," + strconv.Itoa(site_id)
 		etat = "R"
-		fmt.Println("Envoie Resultat avec moi comme elu !")
+		fmt.Println("Envoie Resultat avec elu !")
 	}else{
 		list += ";" + idApt
 		msg = "A" + list
 		etat = "A"
 	}
+	time.Sleep(time.Second)
 	network.MsgTo(msg)
 
 }
@@ -68,6 +71,7 @@ func RcptResultat(i string, list string){
 			list += ";" + strconv.Itoa(site_id)
 
 			fmt.Println("Rcpt Resultat -> Elu: "+ i + " et la liste: " + list)
+			time.Sleep(time.Second)
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
 		}
@@ -95,8 +99,8 @@ func MsgHandle(net string, add string){
 		msg := network.MsgFrom(net,add)
 		oppCode := msg[0]
 		if oppCode == 'A'{
-			RcptAnnonce(msg[1:])
 			fmt.Println("Rcpt Annonce: " + msg[1:])
+			RcptAnnonce(msg[1:])
 		}else if oppCode == 'R'{
 			RcptResultat(string(msg[1]),msg[3:])
 		}
