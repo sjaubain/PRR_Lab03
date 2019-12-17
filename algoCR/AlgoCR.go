@@ -65,8 +65,8 @@ func RcptResultat(i string, list string){
 			Election()
 		}else if etat == "A"{
 			elu , _ = strconv.Atoi(i)
-			list += ";" + strconv.Itoa(site_id)
 			fmt.Println("Rcpt Resultat -> Elu: "+ i + " et la liste: " + list)
+			list += ";" + strconv.Itoa(site_id)
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
 		}

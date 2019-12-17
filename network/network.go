@@ -15,6 +15,8 @@ var(
 	all_apt []int
 	myId int
 	next int
+	ack chan bool
+	notConnection chan bool
 )
 
 func InitNetwork(nb_site int, site_add []string, apt_site []int, id int){
@@ -23,18 +25,27 @@ func InitNetwork(nb_site int, site_add []string, apt_site []int, id int){
 	all_apt = apt_site
 	myId = id
 	next = myId + 1
+	ack = make(chan bool)
+	notConnection = make(chan bool)
 
 }
 
 func MsgTo(msg string){
-	conn, err := net.Dial("udp", all_add[next%nbre_site])
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
 
-	time.Sleep(time.Second)
-	fmt.Fprintf(conn,msg)
+	for i := true; i; i = <-notConnection{
+		conn, err := net.Dial("udp",all_add[next%nbre_site])
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer conn.Close()
+
+
+		time.Sleep(time.Second) // msg transmis chaque seconde
+		fmt.Fprintf(conn,msg)
+		go ConnectionHandle()
+	}
+
+
 }
 
 func MsgFrom(network string, address string) string{
@@ -53,7 +64,27 @@ func MsgFrom(network string, address string) string{
 		s := bufio.NewScanner(bytes.NewReader(buf[0:n]))
 		for s.Scan() {
 			msg := s.Text()
+			go AckOK()
+			//fmt.Println(msg)
 			return msg
+
 		}
 	}
 }
+
+func ConnectionHandle() {
+
+	select {
+		case <- ack:
+			notConnection <- false
+		case <-time.After(2*time.Second):
+			next += 1
+			notConnection <- true
+	}
+}
+
+func AckOK(){
+	ack <- true
+}
+
+
