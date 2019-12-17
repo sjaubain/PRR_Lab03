@@ -64,8 +64,10 @@ func RcptResultat(i string, list string) {
 			elu, _ = strconv.Atoi(i)
 			fmt.Println("Rcpt Resultat -> Elu: " + i + " et la liste: " + list)
 			list += ";" + strconv.Itoa(site_id)
-			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
+			fmt.Println("J envoie " + "R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
+			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
+
 		}
 	}
 }

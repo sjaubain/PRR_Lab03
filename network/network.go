@@ -42,7 +42,7 @@ func MsgTo(msg string) {
 		//fmt.Println("\n me : " + strconv.Itoa(myId) + " next : " + strconv.Itoa(next))
 
 		time.Sleep(time.Second) // msg transmis chaque seconde
-		fmt.Fprintf(conn, msg)
+		_, _ = fmt.Fprintf(conn, msg)
 
 		// se mets en attente du ack après l'envoi
 		// de chaque message
@@ -62,6 +62,7 @@ func MsgFrom(network string, address string) string {
 	for {
 		n, previousSiteAddr, err := conn.ReadFrom(buf)
 
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -71,10 +72,11 @@ func MsgFrom(network string, address string) string {
 			msg := s.Text()
 			go AckOK(msg)
 
+			fmt.Println(s.Text())
 			// répond par un ack à la réception d'un message
 			// (ack exclu car sinon boucle infinie de ack)
 			if s.Text() != "O" {
-				conn.WriteTo([]byte("O"), previousSiteAddr)
+				_, _ = conn.WriteTo([]byte("O"), previousSiteAddr)
 			}
 
 			return msg
@@ -87,14 +89,16 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 	go func() {
 		conn.Read(buf)
 		if buf[0] == 'O' {
-			fmt.Println("Recu un ACK pour le message [" + msg + "]")
+			//fmt.Println("Recu un ACK pour le message [" + msg + "]")
 			ack <- true
 		}
 	}()
 
 	select {
 	case <-ack:
+		next = (myId + 1) % nbre_site
 		notConnection <- false
+
 
 	case <-time.After(2 * time.Second):
 		next = (next + 1) % nbre_site
