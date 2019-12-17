@@ -87,6 +87,7 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 	go func() {
 		conn.Read(buf)
 		if buf[0] == 'O' {
+			fmt.Println("Recu un ACK pour le message [" + msg + "]")
 			ack <- true
 		}
 	}()
@@ -99,6 +100,7 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 		next = (next + 1) % nbre_site
 
 		// renvoie le message au suivant
+		fmt.Println("Pas recu de ACK après 2 sec, passe au suivant")
 		MsgTo(msg)
 		notConnection <- true
 	}
