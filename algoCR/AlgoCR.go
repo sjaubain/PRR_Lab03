@@ -55,7 +55,7 @@ func RcptResultat(i string, list string) {
 	tabProc := strings.Split(list, ";")
 	for j := range tabProc {
 		if strconv.Itoa(site_id) == tabProc[j] {
-			fmt.Println("Fin - Elu trouvé")
+			fmt.Println("Fin - le processus " + strconv.Itoa(elu) + " est l'elu")
 			etat = "N"
 		} else if etat == "R" && strconv.Itoa(elu) != i {
 			fmt.Println("Lance une nouvelle election car contradiction")
@@ -64,7 +64,6 @@ func RcptResultat(i string, list string) {
 			elu, _ = strconv.Atoi(i)
 			fmt.Println("Rcpt Resultat -> Elu: " + i + " et la liste: " + list)
 			list += ";" + strconv.Itoa(site_id)
-			fmt.Println("J envoie " + "R" + strconv.Itoa(elu) + "," + list)
 			etat = "R"
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 
@@ -88,7 +87,7 @@ func getApt(idApt string) (int, int) {
 }
 
 func MsgHandle(net string, add string) {
-	for {
+	for{
 		msg := network.MsgFrom(net, add)
 		oppCode := msg[0]
 		if oppCode == 'A' {
@@ -100,3 +99,4 @@ func MsgHandle(net string, add string) {
 	}
 
 }
+

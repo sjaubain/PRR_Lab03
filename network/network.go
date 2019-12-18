@@ -47,12 +47,12 @@ func MsgTo(msg string) {
 		// se mets en attente du ack après l'envoi
 		// de chaque message
 		buf := make([]byte, 1)
-		_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
+	//	_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
 
 		conn.Read(buf)
 		if buf[0] == 'O' {
 			//fmt.Println("Recu un ACK pour le message [" + msg + "]")
-			ack <- true
+			go AskOK()
 		}
 
 		go ConnectionHandle(conn, buf, msg)
@@ -73,21 +73,26 @@ func MsgFrom(network string, address string) string {
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		s := bufio.NewScanner(bytes.NewReader(buf[0:n]))
+
 		for s.Scan() {
-
 			msg := s.Text()
-
-			fmt.Println(s.Text())
 			// répond par un ack à la réception d'un message
 			// (ack exclu car sinon boucle infinie de ack)
+
+			fmt.Println(msg)
 			if s.Text() != "O" {
-				_, _ = conn.WriteTo([]byte("O"), previousSiteAddr)
+				_, err = conn.WriteTo([]byte("O"), previousSiteAddr)
 			}
 
 			return msg
 		}
 	}
+}
+
+func AskOK(){
+	ack <- true
 }
 
 func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
@@ -102,7 +107,6 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 
 		// renvoie le message au suivant
 		fmt.Println("Pas recu de ACK après 2 sec, passe au suivant")
-		MsgTo(msg)
 		notConnection <- true
 	}
 }
