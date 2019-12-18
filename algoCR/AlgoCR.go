@@ -62,6 +62,7 @@ func RcptResultat(i string, list string) {
 		if strconv.Itoa(site_id) == tabProc[j] {
 			fmt.Println("Fin - le processus " + strconv.Itoa(elu) + " est l'elu")
 			etat = "N"
+			network.MsgTo("F" + idApt)
 		} else if etat == "R" && strconv.Itoa(elu) != i {
 			fmt.Println("Lance une nouvelle election car contradiction")
 			Election()
@@ -72,6 +73,18 @@ func RcptResultat(i string, list string) {
 			etat = "R"
 			network.MsgTo("R" + strconv.Itoa(elu) + "," + list)
 
+		}
+	}
+}
+
+func RcptFin(list string){
+	if etat != "A"{
+		etat = "N"
+		if strings.Contains(list, idApt) {
+			fmt.Println("Tout les sites ont le même elu")
+		} else {
+			list += ";" + idApt
+			network.MsgTo(list)
 		}
 	}
 }
@@ -106,6 +119,9 @@ func MsgHandle(net string, add string) {
 				RcptAnnonce(msg[1:])
 			} else if oppCode == 'R' {
 				RcptResultat(string(msg[1]), msg[3:])
+			} else if oppCode == 'F' {
+				fmt.Println("Rcpt elu: " + msg[1:])
+				RcptFin(msg)
 			}
 
 			hdlMsgDone <- true
