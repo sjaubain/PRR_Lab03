@@ -87,16 +87,16 @@ func getApt(idApt string) (int, int) {
 }
 
 func MsgHandle(net string, add string) {
-	for{
+	for {
 		msg := network.MsgFrom(net, add)
-		oppCode := msg[0]
-		if oppCode == 'A' {
-			fmt.Println("Rcpt Annonce: " + msg[1:])
-			RcptAnnonce(msg[1:])
-		} else if oppCode == 'R' {
-			RcptResultat(string(msg[1]), msg[3:])
-		}
+		go func() {
+			oppCode := msg[0]
+			if oppCode == 'A' {
+				fmt.Println("Rcpt Annonce: " + msg[1:])
+				RcptAnnonce(msg[1:])
+			} else if oppCode == 'R' {
+				RcptResultat(string(msg[1]), msg[3:])
+			}
+		}()
 	}
-
 }
-

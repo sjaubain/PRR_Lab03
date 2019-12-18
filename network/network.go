@@ -17,6 +17,7 @@ var (
 	next          int
 	ack           chan bool
 	notConnection chan bool
+	hdlMsgDone    chan bool
 )
 
 func InitNetwork(nb_site int, site_add []string, apt_site []int, id int) {
@@ -26,37 +27,39 @@ func InitNetwork(nb_site int, site_add []string, apt_site []int, id int) {
 	myId = id
 	next = (myId + 1) % nbre_site
 	ack = make(chan bool)
-	notConnection = make(chan bool)
-
+	hdlMsgDone = make(chan bool, 1)
+	hdlMsgDone <- true
 }
 
 func MsgTo(msg string) {
 
-	for i := true; i; i = <-notConnection {
-		conn, err := net.Dial("udp", all_add[next])
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer conn.Close()
+	<-hdlMsgDone
 
-		//fmt.Println("\n me : " + strconv.Itoa(myId) + " next : " + strconv.Itoa(next))
-
-		time.Sleep(time.Second) // msg transmis chaque seconde
-		_, _ = fmt.Fprintf(conn, msg)
-
-		// se mets en attente du ack après l'envoi
-		// de chaque message
-		buf := make([]byte, 1)
-	//	_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
-
-		conn.Read(buf)
-		if buf[0] == 'O' {
-			//fmt.Println("Recu un ACK pour le message [" + msg + "]")
-			go AskOK()
-		}
-
-		go ConnectionHandle(conn, buf, msg)
+	conn, err := net.Dial("udp", all_add[next])
+	if err != nil {
+		log.Fatal(err)
 	}
+	defer conn.Close()
+
+	//fmt.Println("\n me : " + strconv.Itoa(myId) + " next : " + strconv.Itoa(next))
+
+	time.Sleep(time.Second) // msg transmis chaque seconde
+	_, _ = fmt.Fprintf(conn, msg)
+
+	// se mets en attente du ack après l'envoi
+	// de chaque message
+	buf := make([]byte, 1)
+	_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
+
+	conn.Read(buf)
+	if buf[0] == 'O' {
+		//fmt.Println("Recu un ACK pour le message [" + msg + "]")
+		go AskOK()
+	}
+
+	hdlMsgDone <- true
+
+	ConnectionHandle(conn, buf, msg)
 
 }
 
@@ -91,7 +94,7 @@ func MsgFrom(network string, address string) string {
 	}
 }
 
-func AskOK(){
+func AskOK() {
 	ack <- true
 }
 
@@ -100,13 +103,12 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 	select {
 	case <-ack:
 		next = (myId + 1) % nbre_site
-		notConnection <- false
 
 	case <-time.After(2 * time.Second):
 		next = (next + 1) % nbre_site
 
 		// renvoie le message au suivant
 		fmt.Println("Pas recu de ACK après 2 sec, passe au suivant")
-		notConnection <- true
+		MsgTo(msg)
 	}
 }
