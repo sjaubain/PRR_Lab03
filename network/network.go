@@ -47,6 +47,7 @@ func MsgTo(msg string) {
 		// se mets en attente du ack après l'envoi
 		// de chaque message
 		buf := make([]byte, 1)
+		_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
 		go ConnectionHandle(conn, buf, msg)
 	}
 
@@ -62,7 +63,6 @@ func MsgFrom(network string, address string) string {
 	for {
 		n, previousSiteAddr, err := conn.ReadFrom(buf)
 
-
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -70,7 +70,6 @@ func MsgFrom(network string, address string) string {
 		for s.Scan() {
 
 			msg := s.Text()
-			go AckOK(msg)
 
 			fmt.Println(s.Text())
 			// répond par un ack à la réception d'un message
@@ -86,6 +85,8 @@ func MsgFrom(network string, address string) string {
 
 func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 
+	// cette go routine se stoppe après 2 * T secondes
+	// grâce au setDeadline
 	go func() {
 		conn.Read(buf)
 		if buf[0] == 'O' {
@@ -99,7 +100,6 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 		next = (myId + 1) % nbre_site
 		notConnection <- false
 
-
 	case <-time.After(2 * time.Second):
 		next = (next + 1) % nbre_site
 
@@ -107,11 +107,5 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 		fmt.Println("Pas recu de ACK après 2 sec, passe au suivant")
 		MsgTo(msg)
 		notConnection <- true
-	}
-}
-
-func AckOK(msg string) {
-	if msg[0] == 'O' {
-		ack <- true
 	}
 }
