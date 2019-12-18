@@ -17,7 +17,6 @@ var (
 	next          int
 	ack           chan bool
 	notConnection chan bool
-	hdlMsgDone    chan bool
 	T             time.Duration
 )
 
@@ -28,14 +27,10 @@ func InitNetwork(nb_site int, site_add []string, apt_site []int, id int) {
 	myId = id
 	next = (myId + 1) % nbre_site
 	ack = make(chan bool, 1)
-	hdlMsgDone = make(chan bool, 1)
-	hdlMsgDone <- true // channel mutex pour protéger l'accès aux variables
 	T = 1
 }
 
 func MsgTo(msg string) {
-
-	<-hdlMsgDone
 
 	conn, err := net.Dial("udp", all_add[next])
 	if err != nil {
@@ -100,7 +95,6 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 
 		// réinitialise le next
 		next = (myId + 1) % nbre_site
-		hdlMsgDone <- true
 
 	case <-time.After(2 * T * time.Second):
 
@@ -109,7 +103,6 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 
 		// renvoie le message au suivant
 		fmt.Println("Pas recu de ACK après 2 sec, passe au suivant")
-		hdlMsgDone <- true
 		MsgTo(msg)
 	}
 }

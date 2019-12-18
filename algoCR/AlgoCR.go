@@ -8,17 +8,22 @@ import (
 )
 
 var (
-	site_id int    // identifiant du site
-	apt     int    // l'aptitude du site
-	idApt   string // le coupe (id-apt)
-	etat    string // Etat (R | A | N)
-	elu     int    // identifiant de l'elu courant
+	site_id    int       // identifiant du site
+	apt        int       // l'aptitude du site
+	idApt      string    // le coupe (id-apt)
+	etat       string    // Etat (R | A | N)
+	elu        int       // identifiant de l'elu courant
+	hdlMsgDone chan bool // channel mutex pour protéger la variable
+	// elu et ne traiter qu'une réception à la fois
 )
 
 func InitAlgo(identifiant int, apti int) {
 	site_id = identifiant
 	apt = apti
 	idApt = strconv.Itoa(site_id) + "-" + strconv.Itoa(apt)
+
+	hdlMsgDone = make(chan bool, 1)
+	hdlMsgDone <- true // channel mutex pour protéger l'accès aux variables
 }
 
 func Election() {
@@ -92,6 +97,9 @@ func MsgHandle(net string, add string) {
 
 		// exécution en parallèle pour ne pas bloquer le MsgFrom
 		go func() {
+
+			<-hdlMsgDone
+
 			oppCode := msg[0]
 			if oppCode == 'A' {
 				fmt.Println("Rcpt Annonce: " + msg[1:])
@@ -99,6 +107,8 @@ func MsgHandle(net string, add string) {
 			} else if oppCode == 'R' {
 				RcptResultat(string(msg[1]), msg[3:])
 			}
+
+			hdlMsgDone <- true
 		}()
 	}
 }
