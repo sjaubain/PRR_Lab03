@@ -47,7 +47,7 @@ func MsgTo(msg string) {
 	buf := make([]byte, 1)
 
 	// On n'écoute que pendant la période du timeout
-	_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
+	_ = conn.SetDeadline(time.Now().Add(2 * T * time.Second))
 
 	conn.Read(buf)
 	if buf[0] == 'O' {
