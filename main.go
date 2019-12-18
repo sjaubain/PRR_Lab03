@@ -14,7 +14,7 @@ import (
 type Conf struct {
 	NB_SITES   int
 	SITES_ADDR []string
-	APT_SITES []int
+	APT_SITES  []int
 }
 
 func LoadConfiguration(conf *Conf) {
@@ -25,11 +25,11 @@ func LoadConfiguration(conf *Conf) {
 }
 
 var fin chan bool
-func main(){
+
+func main() {
 	var siteId int
 	var conf Conf
 	LoadConfiguration(&conf)
-
 
 	// parse command line args
 	if len(os.Args) == 1 {
@@ -44,12 +44,8 @@ func main(){
 	}
 	go algoCR.MsgHandle("udp", conf.SITES_ADDR[siteId])
 
-
-	algoCR.InitAlgo(siteId,conf.APT_SITES[siteId])
-	network.InitNetwork(conf.NB_SITES,conf.SITES_ADDR,conf.APT_SITES,siteId)
-
-
-
+	algoCR.InitAlgo(siteId, conf.APT_SITES[siteId])
+	network.InitNetwork(conf.NB_SITES, conf.SITES_ADDR, conf.APT_SITES, siteId)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -66,6 +62,6 @@ func main(){
 		}
 	}
 
-	<- fin
+	<-fin
 
 }

@@ -57,10 +57,7 @@ func MsgTo(msg string) {
 		go AskOK()
 	}
 
-	hdlMsgDone <- true
-
 	ConnectionHandle(conn, buf, msg)
-
 }
 
 func MsgFrom(network string, address string) string {
@@ -103,12 +100,14 @@ func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 	select {
 	case <-ack:
 		next = (myId + 1) % nbre_site
+		hdlMsgDone <- true
 
 	case <-time.After(2 * time.Second):
 		next = (next + 1) % nbre_site
 
 		// renvoie le message au suivant
 		fmt.Println("Pas recu de ACK après 2 sec, passe au suivant")
+		hdlMsgDone <- true
 		MsgTo(msg)
 	}
 }
