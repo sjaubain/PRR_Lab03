@@ -48,6 +48,13 @@ func MsgTo(msg string) {
 		// de chaque message
 		buf := make([]byte, 1)
 		_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
+
+		conn.Read(buf)
+		if buf[0] == 'O' {
+			//fmt.Println("Recu un ACK pour le message [" + msg + "]")
+			ack <- true
+		}
+
 		go ConnectionHandle(conn, buf, msg)
 	}
 
@@ -84,16 +91,6 @@ func MsgFrom(network string, address string) string {
 }
 
 func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
-
-	// cette go routine se stoppe après 2 * T secondes
-	// grâce au setDeadline
-	go func() {
-		conn.Read(buf)
-		if buf[0] == 'O' {
-			//fmt.Println("Recu un ACK pour le message [" + msg + "]")
-			ack <- true
-		}
-	}()
 
 	select {
 	case <-ack:
