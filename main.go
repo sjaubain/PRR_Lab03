@@ -31,7 +31,7 @@ func main() {
 	var conf Conf
 	LoadConfiguration(&conf)
 
-	// parse command line args
+	// parse la ligne de commandes
 	if len(os.Args) == 1 {
 		log.Println("you have to provide a site id")
 		return
@@ -42,26 +42,32 @@ func main() {
 			return
 		}
 	}
+
+	// goroutine d'écoute du site précédent en arrière plan
 	go algoCR.MsgHandle("udp", conf.SITES_ADDR[siteId])
 
 	algoCR.InitAlgo(siteId, conf.APT_SITES[siteId])
 	network.InitNetwork(conf.NB_SITES, conf.SITES_ADDR, conf.APT_SITES, siteId)
 
 	reader := bufio.NewReader(os.Stdin)
+
 	for {
+
 		fmt.Println("\nEnter text: [E (Election)]\n")
 
-		// read the input of the user
+		// lis l'entrée utilisateur
 		cmd, _ := reader.ReadString('\n')
 
-		// if W, the site do an ask
+		// Si E, lance une élection, si G obtient la valeur de l'élu
 		if cmd == "E\n" {
 			algoCR.Election()
+		} else if cmd == "G\n" {
+			fmt.Println("L'elu courant est : [" + strconv.Itoa(algoCR.GetElu()) + "]")
 		} else {
 			fmt.Println("unknown command " + cmd)
 		}
 	}
 
+	// Pour garder la console en premier plan
 	<-fin
-
 }

@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	site_id int
-	apt     int
-	idApt   string
-	etat    string
-	elu     int
+	site_id int    // identifiant du site
+	apt     int    // l'aptitude du site
+	idApt   string // le coupe (id-apt)
+	etat    string // Etat (R | A | N)
+	elu     int    // identifiant de l'elu courant
 )
 
 func InitAlgo(identifiant int, apti int) {
@@ -89,6 +89,8 @@ func getApt(idApt string) (int, int) {
 func MsgHandle(net string, add string) {
 	for {
 		msg := network.MsgFrom(net, add)
+
+		// exécution en parallèle pour ne pas bloquer le MsgFrom
 		go func() {
 			oppCode := msg[0]
 			if oppCode == 'A' {

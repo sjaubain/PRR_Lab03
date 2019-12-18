@@ -18,6 +18,7 @@ var (
 	ack           chan bool
 	notConnection chan bool
 	hdlMsgDone    chan bool
+	T             time.Duration
 )
 
 func InitNetwork(nb_site int, site_add []string, apt_site []int, id int) {
@@ -26,9 +27,10 @@ func InitNetwork(nb_site int, site_add []string, apt_site []int, id int) {
 	all_apt = apt_site
 	myId = id
 	next = (myId + 1) % nbre_site
-	ack = make(chan bool)
+	ack = make(chan bool, 1)
 	hdlMsgDone = make(chan bool, 1)
-	hdlMsgDone <- true
+	hdlMsgDone <- true // channel mutex pour protéger l'accès aux variables
+	T = 1
 }
 
 func MsgTo(msg string) {
@@ -41,20 +43,20 @@ func MsgTo(msg string) {
 	}
 	defer conn.Close()
 
-	//fmt.Println("\n me : " + strconv.Itoa(myId) + " next : " + strconv.Itoa(next))
-
-	time.Sleep(time.Second) // msg transmis chaque seconde
+	// simulation d'un temps long de transmission
+	time.Sleep(T * time.Second)
 	_, _ = fmt.Fprintf(conn, msg)
 
 	// se mets en attente du ack après l'envoi
 	// de chaque message
 	buf := make([]byte, 1)
+
+	// On n'écoute que pendant la période du timeout
 	_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
 
 	conn.Read(buf)
 	if buf[0] == 'O' {
-		//fmt.Println("Recu un ACK pour le message [" + msg + "]")
-		go AskOK()
+		ack <- true
 	}
 
 	ConnectionHandle(conn, buf, msg)
@@ -78,9 +80,9 @@ func MsgFrom(network string, address string) string {
 
 		for s.Scan() {
 			msg := s.Text()
+
 			// répond par un ack à la réception d'un message
 			// (ack exclu car sinon boucle infinie de ack)
-
 			fmt.Println(msg)
 			if s.Text() != "O" {
 				_, err = conn.WriteTo([]byte("O"), previousSiteAddr)
@@ -91,18 +93,18 @@ func MsgFrom(network string, address string) string {
 	}
 }
 
-func AskOK() {
-	ack <- true
-}
-
 func ConnectionHandle(conn net.Conn, buf []byte, msg string) {
 
 	select {
 	case <-ack:
+
+		// réinitialise le next
 		next = (myId + 1) % nbre_site
 		hdlMsgDone <- true
 
-	case <-time.After(2 * time.Second):
+	case <-time.After(2 * T * time.Second):
+
+		// passe au suivant
 		next = (next + 1) % nbre_site
 
 		// renvoie le message au suivant
