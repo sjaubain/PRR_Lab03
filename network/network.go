@@ -78,7 +78,6 @@ func MsgFrom(network string, address string) string {
 
 			// répond par un ack à la réception d'un message
 			// (ack exclu car sinon boucle infinie de ack)
-			fmt.Println(msg)
 			if s.Text() != "O" {
 				_, err = conn.WriteTo([]byte("O"), previousSiteAddr)
 			}
