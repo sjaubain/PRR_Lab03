@@ -46,7 +46,9 @@ Ouvrir ensuite autant de terminal qu'il y a de sites configurés (par défaut 3)
 ./site 0
 ```
 
-Une fois que tous sites seront lancés et interconnectés, il suffit comme cité précédemment d'entrer les commandes `E` ou `G` pour lancer une élection ou consulter la valeur de l'élu
+Une fois que tous sites seront lancés et interconnectés, il suffit comme cité précédemment d'entrer les commandes `E` ou `G` pour lancer une élection ou consulter la valeur de l'élu.
+
+Lors d'une panne du processus elu, il suffit de lancer une élection sur un autre processus pour connaitre le nouvel élu (Valdié par Monsieur Lachaize).
 
 ## Amélioration possible
 
