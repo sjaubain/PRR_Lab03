@@ -20,6 +20,7 @@ var (
 	T             time.Duration
 )
 
+// initialisation de la partie reseau
 func InitNetwork(nb_site int, site_add []string, apt_site []int, id int) {
 	nbre_site = nb_site
 	all_add = site_add

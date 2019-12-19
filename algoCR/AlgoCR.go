@@ -62,7 +62,7 @@ func RcptResultat(i string, list string) {
 		if strconv.Itoa(site_id) == tabProc[j] {
 			fmt.Println("Fin - le processus " + strconv.Itoa(elu) + " est l'elu")
 			etat = "N"
-			network.MsgTo("F" + idApt)
+			network.MsgTo("F" + idApt) // on refait le tour pour leur donner l elu
 		} else if etat == "R" && strconv.Itoa(elu) != i {
 			fmt.Println("Lance une nouvelle election car contradiction")
 			Election()
@@ -96,6 +96,7 @@ func GetElu() int {
 	return -1
 }
 
+// nous permet de parser le msg, retourne l id du site et son aptitude
 func getApt(idApt string) (int, int) {
 
 	splitIdApt := strings.Split(idApt, "-")
